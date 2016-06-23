@@ -1,12 +1,10 @@
-require(['lib/phaser.min', 'Player', 'Ground', 'Enemy'], function(PhaserDep, Player, Ground, Enemy) {
+require(['lib/phaser.min', 'Player', 'Ground', 'Enemies', 'Score', 'Stars'], function(PhaserDep, Player, Ground, Enemies, Score, Stars) {
 	var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: create, update: update });
 
 	var ground;
 	var player;	
-	var enemies;
-	var stars;
-	var score = 0;
-	var scoreText;
+	var score;
+	// var healtText;
 	var fx;
 
 	function preload() {
@@ -27,29 +25,17 @@ require(['lib/phaser.min', 'Player', 'Ground', 'Enemy'], function(PhaserDep, Pla
 		var sky = game.add.sprite(0, 0, 'sky');	
 		sky.fixedToCamera = true;
 
-		enemies = game.add.group();
-		ground = new Ground(game, createEnemy);		
+		score = Score(game);
+		ground = new Ground(game);		
 		game.add.existing(ground);
 		player = game.add.existing(new Player(game, 32, 0));	
+		game.add.existing(Enemies(game, ground, player, score));
+		game.add.existing(Stars(game, ground, player, score));
+		ground.initFillScreen(game);
 		
-
-		stars = game.add.group();
-		stars.enableBody = true;	
-		stars.physicsBodyType = Phaser.Physics.P2JS;	
-		var starMaterial = game.physics.p2.createMaterial('starMaterial');
-		for (var i = 0; i < 11; i++) {
-			var star = stars.create(35 + i * 70, 5, 'star');			
-			star.body.data.gravityScale = 0.1;
-			star.body.setMaterial(starMaterial);
-			//star.body.data.shapes[0].sensor = true;		
-			//star.body.bounce.y = 0.7 + Math.random() * 0.2;
-			//console.info("star %d: %o", i, star);
-			//star.body.gravity.y = 6;
-		}
-
-		scoreText = game.add.text(16, 16, 'score: 0', { fontSize: '32px', fill: '#000'});
-		scoreText.fixedToCamera = true;
-
+		// healtText = game.add.text(600, 16, 'Health: 100 %', { fontSize: '32px', fill: '#000'});
+		// healtText.fixedToCamera = true;
+		
 		//game.camera.setSize(100, 100);
 		game.camera.follow(player);
 
@@ -57,34 +43,13 @@ require(['lib/phaser.min', 'Player', 'Ground', 'Enemy'], function(PhaserDep, Pla
 		fx.allowMultiple = true;
 		fx.addMarker('collect-star', 0.0, 0.458);
 		fx.addMarker('land', 0.740, 0.078);
+		fx.addMarker('auch', 1.675, 0.252);
+		fx.addMarker('whoaa', 2.079, 0.576);
 
-		game.physics.p2.setPostBroadphaseCallback(
-			function(body1, body2) {
-				//if (body1.sprite.key === 'star' || body2.sprite.key === 'star') {
-				//	console.info('PBP b1: %o b2: %o', body1.sprite.key, body2.sprite.key);
-				//}
-				if (body1.sprite.key === 'star' && body2.sprite.key === 'dude') {
-					console.info('POST BROAD PHASE player vs star');
-					return false;
-				}
-
-				return true;
-			},
-			this);
-
-		player.body.onBeginContact.add(
-			function(body, shapeA, shapeB, equation) {
-				if (body.sprite.key == 'star') {
-					collectStar(player, body.sprite);
-				}
-				console.info(
-					"Hit with %s A %o B %o eq %o",
-					body.sprite.key,
-					shapeA,
-					shapeB,
-					equation);	
-			}, 
-			this);
+		player.events.onKilled.add(function() {
+			alert('You are dead, bitch !\n\nYour score: ' + score.getValue());
+			document.location.reload(true);
+		});
 	}
 
 	function update() {
@@ -111,20 +76,5 @@ require(['lib/phaser.min', 'Player', 'Ground', 'Enemy'], function(PhaserDep, Pla
 		//game.physics.arcade.overlap(player, stars, collectStar, null, this);
 	}
 
-	function collectStar(player, star) {
-		star.kill();
-		score += 10;
-		scoreText.text = 'Score: ' + score;
-		fx.play('collect-star');
-	}
-
-	function createEnemy(platform) {
-		if (Math.random() > 0.9) {
-			var enemy = game.add.existing(new Enemy(game, platform.x, platform.y - platform.height / 2, platform.minX, platform.maxX));
-			enemies.add(enemy);
-			return enemy;
-		} else {
-			return { kill: function() {}}
-		}
-	}
+	
 });

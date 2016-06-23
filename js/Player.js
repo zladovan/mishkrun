@@ -6,14 +6,15 @@ define(function(require) {
 		Phaser.Sprite.call(this, game, x, y, 'dude');
 
 		game.physics.p2.enable(this);	
-		this.body.collideWorldBounds = true;
+		this.alive = true;
+		//this.body.collideWorldBounds = true;
 		this.body.setZeroDamping();
 		this.body.fixedRotation = true;
 		this.animations.add('left', [0, 1, 2, 3], 10, true);	
 		this.animations.add('right', [5, 6, 7, 8], 10, true);
 
 		this.cursors = game.input.keyboard.createCursorKeys();
-
+		
 		this.fx = game.add.audio('sfx');
 		this.fx.allowMultiple = true;	
 		this.fx.addMarker('jump', 0.488, 0.134);
@@ -23,7 +24,7 @@ define(function(require) {
 		this.walkingSound.addMarker('walk', 0.946, 0.286);
 
 		this.material = game.physics.p2.createMaterial('playerMaterial', this.body);
-
+		
 		this.stateMachine = StateMachine.create({
 			initial: 'idle',
 
@@ -38,7 +39,7 @@ define(function(require) {
 			callbacks: {
 				onmove: function(event, from, to, player) { 
 					console.log("MOVE");
-					player.body.velocity.y = 0;
+					//player.body.velocity.y = 0;
 					player.walkingSound.play('walk', 0, 1, true, false);
 				},
 				
@@ -57,6 +58,14 @@ define(function(require) {
 				onleavewalking: function(event, from, to, player) {
 					player.walkingSound.stop();
 					player.resetAnimations();
+				},
+				
+				onfall: function(event, from, to, player) {
+					player.isFalling = true;
+				},
+				
+				onleavefalling: function(event, from, to, player) {
+					player.isFalling = false;
 				}/*
 
 				onidle: function(event, from, to, player) {				
@@ -144,6 +153,10 @@ define(function(require) {
 		this.animations.stop();
 		this.frame = 4;
 	}
+	
+	// Player.prototype.jump = function() {
+	// 	this.stateMachine.jump();
+	// }
 
 	return Player;
 });

@@ -1,8 +1,7 @@
 define(function(require) {
 	var PhaserDep = require('lib/phaser.min'),
 		NoiseGen = require('lib/libnoise/noisegen'),
-		Perlin = require('lib/libnoise/module/generator/perlin'),
-		Voronoi = require('lib/libnoise/module/generator/voronoi');	
+		Perlin = require('lib/libnoise/module/generator/perlin');
 	
 	var PLATFORM_SPRITE_WIDTH = 400; // todo get from image
 	var PLATFORM_BLOCK_WIDTH = 32;
@@ -15,22 +14,24 @@ define(function(require) {
 	var GENERATOR_FACTORY = function (seed) { return new Perlin(0.1, 2.0, 8, 0.5, seed, NoiseGen.QUALITY_STD); };
 	
 
-	Ground = function(game, createPlatformContent) {
+	Ground = function(game) {
 		Phaser.Group.call(this, game);					
 
 		this.createMultiple(Math.ceil(game.world.width / PLATFORM_BLOCK_WIDTH), 'ground');				
 		this.platforms = [];		
-		this.generator = this._initGenerator(game, createPlatformContent);				
+		this.events = { onPlatformCreate: new Phaser.Signal(), onPlatformKill: new Phaser.Signal() };
+		this.generator = this._initGenerator(game);				
+	};
 
+	Ground.prototype = Object.create(Phaser.Group.prototype);
+	Ground.prototype.constructor = Phaser.Group;
+
+	Ground.prototype.initFillScreen = function(game) {
 		var platform = {minX: 0, index: -1, width: 0}; // fake 'zero' platform
 		do {
 			platform = this.generator.createPlatformNexTo(platform, false);															
 		} while (platform.maxX < game.width);
-		
-	}
-
-	Ground.prototype = Object.create(Phaser.Group.prototype);
-	Ground.prototype.constructor = Phaser.Group;
+	};
 	
 	Ground.prototype.update = function() {		
 		var mostLeftPlatform = this.platforms[0];
@@ -55,7 +56,7 @@ define(function(require) {
 		
 	};
 
-	Ground.prototype._initGenerator = function(game, createPlatformContent) {		
+	Ground.prototype._initGenerator = function(game) {		
 		var ground = this;
 		var seed = Date.now();
 		var generator = GENERATOR_FACTORY(seed);
@@ -85,9 +86,6 @@ define(function(require) {
 			game.physics.p2.enable(platform);
 			platform.body.static = true;
 
-			var content = createPlatformContent(platform);
-			platform.events.onKilled.add(function() { if (content) content.kill(); }, this);
-
 			return platform;
 		}
 
@@ -105,11 +103,17 @@ define(function(require) {
 					ground.platforms.unshift(platform);	
 				} else {
 					ground.platforms.push(platform);
-				}								
+				}
+				ground.events.onPlatformCreate.dispatch(platform, seed);
+				platform.events.onKilled.add(function() { ground.events.onPlatformKill.dispatch(platform); }, this);
 				return platform; 
 			}
 		};
 	};
+
+	
+	
+	
 
 	return Ground;
 });
