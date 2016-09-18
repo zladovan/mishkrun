@@ -7,6 +7,7 @@ require(['lib/phaser.min', 'Player', 'Ground', 'Enemies', 'Score', 'Stars'], fun
 	// var healtText;
 	var fx;
 
+	// todo move preload into separate components
 	function preload() {
 		game.load.image('sky', 'assets/sky.png');
 		game.load.image('ground', 'assets/platform.png');
@@ -14,6 +15,7 @@ require(['lib/phaser.min', 'Player', 'Ground', 'Enemies', 'Score', 'Stars'], fun
 		game.load.spritesheet('dude', 'assets/dude.png', 32, 48);
 		game.load.spritesheet('baddie', 'assets/baddie.png', 32, 32);
 		game.load.spritesheet('bird', 'assets/bird.png', 48, 48);
+		game.load.spritesheet('gamepad', 'assets/gamepad.png', 48, 48);
 		game.load.audio('sfx', 'assets/sfx.ogg');
 	}
 
