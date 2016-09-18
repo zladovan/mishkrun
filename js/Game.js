@@ -1,4 +1,20 @@
-require(['lib/phaser.min', 'Player', 'Ground', 'Enemies', 'Score', 'Stars'], function(PhaserDep, Player, Ground, Enemies, Score, Stars) {
+require([
+		'lib/phaser.min', 
+		'Player', 
+		'Ground', 
+		'Enemies', 
+		'Score', 
+		'Stars', 
+		'input/Controls'
+	], function(
+		PhaserDep, 
+		Player, 
+		Ground, 
+		Enemies, 
+		Score, 
+		Stars,
+		Controls
+) {
 	var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: create, update: update });
 
 	var ground;
@@ -6,6 +22,7 @@ require(['lib/phaser.min', 'Player', 'Ground', 'Enemies', 'Score', 'Stars'], fun
 	var score;
 	// var healtText;
 	var fx;
+	var controls;
 
 	// todo move preload into separate components
 	function preload() {
@@ -15,7 +32,7 @@ require(['lib/phaser.min', 'Player', 'Ground', 'Enemies', 'Score', 'Stars'], fun
 		game.load.spritesheet('dude', 'assets/dude.png', 32, 48);
 		game.load.spritesheet('baddie', 'assets/baddie.png', 32, 32);
 		game.load.spritesheet('bird', 'assets/bird.png', 48, 48);
-		game.load.spritesheet('gamepad', 'assets/gamepad.png', 48, 48);
+		game.load.spritesheet('gamepad', 'assets/gamepad.png', 96, 96);
 		game.load.audio('sfx', 'assets/sfx.ogg');
 	}
 
@@ -40,7 +57,8 @@ require(['lib/phaser.min', 'Player', 'Ground', 'Enemies', 'Score', 'Stars'], fun
 		score = Score(game);
 		ground = new Ground(game);		
 		game.add.existing(ground);
-		player = game.add.existing(new Player(game, 32, 0));	
+		controls = new Controls(game);
+		player = game.add.existing(new Player(game, controls, 32, 0));	
 		game.add.existing(Enemies(game, ground, player, score));
 		game.add.existing(Stars(game, ground, player, score));
 		ground.initFillScreen(game);
@@ -58,6 +76,9 @@ require(['lib/phaser.min', 'Player', 'Ground', 'Enemies', 'Score', 'Stars'], fun
 
 		
 		var groundPlayerCM = game.physics.p2.createContactMaterial(player.material, ground.material, { friction: 0.0 });
+
+		game.scale.fullScreenScaleMode = Phaser.ScaleManager.EXACT_FIT;
+		game.input.onDown.add(gofull, game);
 	}
 
 	function update() {
@@ -84,5 +105,7 @@ require(['lib/phaser.min', 'Player', 'Ground', 'Enemies', 'Score', 'Stars'], fun
 		//game.physics.arcade.overlap(player, stars, collectStar, null, this);
 	}
 
-	
+	function gofull() {
+		game.scale.startFullScreen(false);
+	}
 });

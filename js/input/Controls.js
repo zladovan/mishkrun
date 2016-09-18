@@ -1,13 +1,13 @@
 define(function(require) {
-	var PhaserDep = require('../lib/phaser.min'),
-	    Keyboard = require('Keyboard'),
-	    ScreenGamepad = require('ScreenGamepad');
+	var PhaserDep = require('lib/phaser.min'),
+	    Keyboard = require('input/Keyboard'),
+	    ScreenGamepad = require('input/ScreenGamepad');
 
 	Controls = function(game) {
 		if (game.device.desktop) {
 			this.controller = new Keyboard(game);
 		} else {
-			this.controller = new ScreenGamepad();
+			this.controller = new ScreenGamepad(game);
 		}
 	}
 	

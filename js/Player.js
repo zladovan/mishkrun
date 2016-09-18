@@ -2,7 +2,7 @@ define(function(require) {
 	var PhaserDep = require('lib/phaser.min'),
 		StateMachine = require('lib/state-machine.min');	
 
-	Player = function(game, x, y) {
+	Player = function(game, controls, x, y) {
 		Phaser.Sprite.call(this, game, x, y, 'dude');
 
 		game.physics.p2.enable(this);	
@@ -12,7 +12,7 @@ define(function(require) {
 		this.animations.add('left', [0, 1, 2, 3], 10, true);	
 		this.animations.add('right', [5, 6, 7, 8], 10, true);
 
-		this.cursors = game.input.keyboard.createCursorKeys();
+		this.controls = controls;
 		
 		this.fx = game.add.audio('sfx');
 		this.fx.allowMultiple = true;	
@@ -79,10 +79,10 @@ define(function(require) {
 
 		this.updateForState = {
 			walking: function(player) {
-				if (player.cursors.left.isDown) {
+				if (player.controls.isLeft()) {
 					player.body.velocity.x = -150;
 					player.animations.play('left');
-				} else if (player.cursors.right.isDown) {
+				} else if (player.controls.isRight()) {
 					player.body.velocity.x = 150;
 					player.animations.play('right')
 				} else {
@@ -93,7 +93,7 @@ define(function(require) {
 			},
 
 			idle: function(player) {
-				if (player.cursors.right.isDown || player.cursors.left.isDown) {
+				if (player.controls.isRight() || player.controls.isLeft()) {
 					player.stateMachine.move(player);
 				}	
 				this.checkJump(player);		
@@ -116,17 +116,17 @@ define(function(require) {
 			},
 
 			checkJump: function(player) {			
-				if (player.cursors.up.isDown ) {
+				if (player.controls.isJump()) {
 					//console.info("velocity.y %d", player.body.velocity.y);
 					player.stateMachine.jump(player);
 				}
 			},
 
 			handleInAir: function(player) {			
-				if (player.cursors.left.isDown) {
+				if (player.controls.isLeft()) {
 					player.body.velocity.x = -150;
 					player.frame = 1;
-				} else if (player.cursors.right.isDown) {
+				} else if (player.controls.isRight()) {
 					player.body.velocity.x = 150;				
 					player.frame = 8;
 				}	

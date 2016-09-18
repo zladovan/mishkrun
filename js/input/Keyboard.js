@@ -1,6 +1,8 @@
 define(function(require) {
-	
+	var PhaserDep = require('lib/phaser.min');
+
 	Keyboard = function(game) {	
+		console.info("PhaserDep %o", PhaserDep);
 		this.cursors = game.input.keyboard.createCursorKeys();
 	}
 	
@@ -18,4 +20,6 @@ define(function(require) {
 		return this.cursors.up.isDown;
 		
 	}
+
+	return Keyboard;
 });
